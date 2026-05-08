@@ -51,6 +51,7 @@ FROM confidencial WHERE id_cliente = 1;
 
 -- EJERCICIO 3
 CREATE ROLE rol_vendedor;
+REVOKE ALL ON pedidos FROM rol_vendedor;
 GRANT SELECT,INSERT ON pedidos TO rol_vendedor;
 GRANT UPDATE (estado) ON pedidos TO rol_vendedor;
 
