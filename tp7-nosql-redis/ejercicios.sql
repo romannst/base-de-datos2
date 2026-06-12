@@ -35,3 +35,22 @@ EXPIRE contenidos_mas_vistos 600
 ZRANGE contenidos_mas_vistos 0 4 WITHSCORES
 
 -- MISION 3
+-- Para utilizar tokens temporales utilizaría Redis en este caso, porque con PostgreSQL al tener que hacer una consulta SELECT en cada click del usuario para verificar la validez del token, podría generar una carga significativa en la base de datos y afectar el rendimiento del sistema. En cambio, Redis es una base de datos en memoria que ofrece tiempos de respuesta muy rápidos, lo que lo hace ideal para manejar tokens temporales.
+-- Guardo el token en Redis con una clave que lo identifique y un tiempo de expiración
+SET session:user:1 "token_abc123" EX 7200 -- Asignar un TTL de 2 horas (7200 segundos) al token
+-- Valido el token en cada click del usuario verificando su existencia en Redis
+GET session:user:1 -- Si el token existe, se considera válido; si no existe, se considera inválido o expirado.
+
+-- MISION 4
+-- Consulta SQL para obtener la lista de películas guardadas por el usuario ordenada por fecha de agregado
+SELECT ML.id_usuario,
+C.titulo AS titulo_pelicula,
+ML.fecha_agregado AS fecha_guardada FROM mi_lista AS ML
+JOIN contenidos AS C ON ML.id_contenido = C.id_contenido
+WHERE ML.id_usuario = 1 ORDER BY fecha_guardada DESC;
+-- Almacenar la lista de películas en Redis con una clave específica para el usuario
+SET mi_lista:user:1 "Película_1,Película_2,Película_3" EX 7200
+-- Si el usuario agrega una nueva película a su lista, actualizamos el valor en Redis
+SET mi_lista:user:1 "Película_1,Película_2,Película_3,Película_4" EX 7200
+-- Alternativamente, podríamos eliminar el dato viejo en Redis para que se realice una nueva consulta a PostgreSQL la próxima vez que el usuario consulte "Mi Lista"
+DEL mi_lista:user:1
